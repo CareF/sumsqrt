@@ -2,18 +2,20 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define NMAX 50
+#define NMAX 20
 #define HALFIDX (((idxbits)1<<(NMAX/2)))
 #define REMAIN (((idxbits)1<<((NMAX+1)/2)))
 typedef long long idxbits;
 typedef long double sfloat;
+sfloat sqrts[NMAX];
 
 sfloat idxToSum(idxbits idx, int nmin, int nmax) {
+    /*sum over bit in idx that's1 from nmin < x <= nmax */
     int i;
     sfloat sum = 0;
-    for(i=nmin; i<=nmax; i++) {
+    for(i=nmin; i<nmax; i++) {
         if(idx%2)
-            sum += sqrtl(i);
+            sum += sqrts[i];
         idx >>= 1;
     }
     return sum;
@@ -73,14 +75,19 @@ int main() {
     sfloat *halfSum = malloc(HALFIDX*sizeof(sfloat));
     idxbits *halfIdx = malloc(HALFIDX*sizeof(idxbits));
     idxbits n;
-    sfloat target = idxToSum(((idxbits)1<<NMAX)-1, 1, NMAX)/2;
-    sfloat res = target;
+    sfloat target;
+    sfloat res;
     idxbits residx;
+    for(n=0; n<NMAX; n++) {
+        sqrts[n] = sqrtl(n+1);
+    }
+    target = idxToSum(((idxbits)1<<NMAX)-1, 0, NMAX)/2;
+    res = target;
     printf("Half of sum sqrt %.16llf\n", target);
 
     for(n=0; n<HALFIDX; n++){
         halfIdx[n] = n;
-        halfSum[n] = idxToSum(n, 1, NMAX/2);
+        halfSum[n] = idxToSum(n, 0, NMAX/2);
     }
     #pragma omp parallel
     #pragma omp single
@@ -90,14 +97,15 @@ int main() {
 
     #pragma omp parallel
     {
+        idxbits n;
         sfloat res_local = res;
         idxbits residx_local;
         for(n=0; n<REMAIN; n++){
-            sfloat sum = idxToSum(n, NMAX/2+1, NMAX);
+            sfloat sum = idxToSum(n, NMAX/2, NMAX);
             idxbits l = idxBiSect(halfSum, halfIdx, target-sum);
             if(l < HALFIDX && sum + halfSum[l] - target < res_local) {
                 res_local = sum + halfSum[l] - target;
-                residx_local = l + (n << NMAX/2);
+                residx_local = l + (n << (NMAX/2));
             }
         }
     #pragma omp critical
@@ -110,9 +118,9 @@ int main() {
     }
 
     printf("min sum of sqrt (%lld): ", residx);
-    for(n=1; n<=NMAX; n++){
-        if(residx & ((idxbits)1<<(n-1)))
-            printf("%d ", n);
+    for(n=0; n<NMAX; n++){
+        if(residx & ((idxbits)1<<n))
+            printf("%d ", n+1);
     }
     printf(", \ndiff=%.16lle\n", res);
     free(halfSum);
@@ -124,7 +132,7 @@ int main() {
  * Output with double:
  * Half of sum sqrt 119.5179003017603776
  * min sum of sqrt (566001980646974): 2 3 4 5 6 10 11 14 16 17 18 19 20 21 22 23 24 26 28 29 32 34 35 39 40 42 50 ,
- * diff=9.2370555648813024e-14
+ * diff=9.9475983006414026e-14
  *
  * with long double:
  * Half of sum sqrt 119.5179003017603917
@@ -133,6 +141,6 @@ int main() {
  *
  * with long double and sqrtl:
  * Half of sum sqrt 119.5179003017603922
- * min sum of sqrt (566001980646974): 2 3 4 5 6 10 11 14 16 17 18 19 20 21 22 23 24 26 28 29 32 34 35 39 40 42 50 ,
+ * min sum of sqrt (566001980614463): 1 2 3 4 5 6 9 10 11 14 17 18 19 20 21 22 23 24 26 28 29 32 34 35 39 40 42 50 ,
  * diff=7.1491423891956174e-14
  */
