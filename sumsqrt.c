@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define NMAX 20
+#define NMAX 50
 #define HALFIDX (((idxbits)1<<(NMAX/2)))
 #define REMAIN (((idxbits)1<<((NMAX+1)/2)))
 typedef long long idxbits;
