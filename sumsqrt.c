@@ -100,6 +100,7 @@ int main() {
         idxbits n;
         sfloat res_local = res;
         idxbits residx_local;
+		#pragma omp for
         for(n=0; n<REMAIN; n++){
             sfloat sum = idxToSum(n, NMAX/2, NMAX);
             idxbits l = idxBiSect(halfSum, halfIdx, target-sum);
