@@ -83,7 +83,7 @@ int main() {
     }
     target = idxToSum(((idxbits)1<<NMAX)-1, 0, NMAX)/2;
     res = target;
-    printf("Half of sum sqrt %.16llf\n", target);
+    printf("Half of sum sqrt %.16Lf\n", target);
 
     for(n=0; n<HALFIDX; n++){
         halfIdx[n] = n;
@@ -93,7 +93,7 @@ int main() {
     #pragma omp single
     idxQSort(halfSum, halfIdx, 0, HALFIDX);
     /* for(n=0; n<HALFIDX; n++) */
-    /*     printf("%llf\n", n, halfSum[halfIdx[n]]); */
+    /*     printf("%Lf\n", n, halfSum[halfIdx[n]]); */
 
     #pragma omp parallel
     {
@@ -121,9 +121,9 @@ int main() {
     printf("min sum of sqrt (%lld): ", residx);
     for(n=0; n<NMAX; n++){
         if(residx & ((idxbits)1<<n))
-            printf("%d ", n+1);
+            printf("%Ld ", n+1);
     }
-    printf(", \ndiff=%.16lle\n", res);
+    printf(", \ndiff=%.16Le\n", res);
     free(halfSum);
     free(halfIdx);
     return 0;
