@@ -121,7 +121,7 @@ int main() {
     printf("min sum of sqrt (%lld): ", residx);
     for(n=0; n<NMAX; n++){
         if(residx & ((idxbits)1<<n))
-            printf("%Ld ", n+1);
+            printf("%lld ", n+1);
     }
     printf(", \ndiff=%.16Le\n", res);
     free(halfSum);
